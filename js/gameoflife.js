@@ -1,27 +1,125 @@
-function seed() {}
+function seed() {
+  return Array.from(arguments);
+}
 
-function same([x, y], [j, k]) {}
+function same([x, y], [j, k]) {
+  if(x === j && y === k){
+    return true;
+  }
+  else{
+    return false;
+  }
+}
 
 // The game state to search for `cell` is passed as the `this` value of the function.
-function contains(cell) {}
+function contains(cell) {
+  for (i in this){
+    if(same(cell, this[i])) return true;
+  }
+  return false;
+}
 
-const printCell = (cell, state) => {};
+const printCell = (cell, state) => {
+  if(contains.call(state,cell)){
+    return '\u25A3';
+  }
+  else{
+    return '\u25A2';
+  }
+};
 
-const corners = (state = []) => {};
+const corners = (state = []) => {
+  if(state.length === 0){
+    return {topRight: [0,0], bottomLeft: [0,0]};
+  }
+  let largestX = state[0][0];
+  let largestY = state[0][1];
+  let smallestX = state[0][0];
+  let smallestY = state[0][1];
+  for(let i = 0; i < state.length; i++){
+    if(largestX < state[i][0]){
+      largestX = state[i][0];
+    }
+    if(largestY < state[i][1]){
+      largestY = state[i][1];
+    }
+    if(smallestX > state[i][0]){
+      smallestX = state[i][0];
+    }
+    if(smallestY > state[i][1]){
+      smallestY = state[i][1];
+    }
+  }
+  return {topRight: [largestX,largestY], bottomLeft: [smallestX,smallestY]};
+};
 
-const printCells = (state) => {};
+//Y goes 4,3,2 x goes through all first
+const printCells = (state) => {
+  let rectangle = corners(state);
+  let board = '';
+  for(let i = rectangle.topRight[1]; i >= rectangle.bottomLeft[1]; i--){
+    for(let j = rectangle.bottomLeft[0]; j <= rectangle.topRight[0]; j++){
+      board += printCell([j,i],state) + ' ';
+    }
+    board +=  '\n';
+  }
+  return board;
+};
 
-const getNeighborsOf = ([x, y]) => {};
+const getNeighborsOf = ([x, y]) => {
+  return [[x-1,y-1],[x,y-1],[x+1,y-1],[x-1,y],[x+1,y],[x-1,y+1],[x,y+1],[x+1,y+1]];
+};
 
-const getLivingNeighbors = (cell, state) => {};
+const getLivingNeighbors = (cell, state) => {
+  let neighbors = getNeighborsOf(cell);
+  let liveNeighbors = [];
+  for(let i = 0; i <neighbors.length; i++){
+    if(contains.call(state,neighbors[i])){
+      liveNeighbors.push(neighbors[i]);
+    }
+  }
+  return liveNeighbors;
+};
 
-const willBeAlive = (cell, state) => {};
+const willBeAlive = (cell, state) => {
+  let liveNeighbors = getLivingNeighbors(cell,state);
+  let cellAlive = contains.call(state,cell);
+  if(liveNeighbors.length === 3 || (cellAlive === true && liveNeighbors.length === 2)){
+    return true;
+  }
+  else{
+    return false;
+  }
+  
+};
 
-const calculateNext = (state) => {};
+const calculateNext = (state) => {
+  let rectangle = corners(state);
+  let futureLife = [];
+  for(let i = rectangle.bottomLeft[1]-1; i <= rectangle.topRight[1]+1; i++){
+    for(let j = rectangle.bottomLeft[0]-1; j <= rectangle.topRight[0]+1; j++){
+      if(willBeAlive([j,i], state)){
+        futureLife.push([j,i]);
+      }
+    }
+  }
+  return futureLife;
+};
 
-const iterate = (state, iterations) => {};
+const iterate = (state, iterations) => {
+  newStates = [state];
+  for(let i=0; i<iterations; i++){
+    newStates.push(calculateNext(newStates[i]));
+  }
+  return newStates;
+};
 
-const main = (pattern, iterations) => {};
+const main = (pattern, iterations) => {
+  newStates = iterate(startPatterns[pattern], iterations);
+  for(let i = 0; i<newStates.length; i++){
+    console.log(printCells(newStates[i]));
+  }
+};
 
 const startPatterns = {
     rpentomino: [
